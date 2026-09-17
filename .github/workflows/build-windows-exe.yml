@@ -14,10 +14,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl.exe -sL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" -o rel.json "https://api.github.com/repos/zzghsy93/fluffy/releases/tags/source-v1"
+          curl.exe -sS -H "Authorization: Bearer $env:GH_TOKEN" -o rel.json "https://api.github.com/repos/zzghsy93/fluffy/releases/tags/source-v1"
           $rel = Get-Content rel.json | ConvertFrom-Json
           $url = $rel.assets[0].url
-          curl.exe -sL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" -o src.zip $url
+          $loc = curl.exe -s -I -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" $url | Select-String -Pattern "^location:" | ForEach-Object { $_.Line.Substring(10).Trim() }
+          echo "asset redirect: $loc"
+          curl.exe -sS -L -o src.zip "$loc"
           Expand-Archive -Path src.zip -DestinationPath . -Force
           Get-ChildItem | Select-Object Name
 
