@@ -30,7 +30,7 @@ jobs:
           channel: stable
           cache: true
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.86.0
 
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
@@ -39,7 +39,7 @@ jobs:
         run: flutter pub get
 
       - name: Build exe
-        run: flutter build windows --release
+        run: flutter build windows --release --verbose
 
       - name: Zip Release
         shell: pwsh
