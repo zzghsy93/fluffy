@@ -1,0 +1,50 @@
+name: build-windows-exe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Download source zip
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl.exe -sL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" -o rel.json "https://api.github.com/repos/zzghsy93/fluffy/releases/tags/source-v1"
+          $rel = Get-Content rel.json | ConvertFrom-Json
+          $url = $rel.assets[0].url
+          curl.exe -sL -H "Authorization: Bearer $env:GH_TOKEN" -H "Accept: application/octet-stream" -o src.zip $url
+          Expand-Archive -Path src.zip -DestinationPath . -Force
+          Get-ChildItem | Select-Object Name
+
+      # fork 冻结在 Flutter 3.44.0(pubspec intl 0.20.2 与之配套,勿升)
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.0
+          channel: stable
+          cache: true
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Build exe
+        run: flutter build windows --release
+
+      - name: Zip Release
+        shell: pwsh
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath fluffychat-fork-windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: fluffychat-fork-windows.zip
+          retention-days: 14
