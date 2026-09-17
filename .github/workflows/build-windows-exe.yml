@@ -59,7 +59,7 @@ jobs:
 
       - name: Zip Release
         shell: pwsh
-        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath fluffychat-fork-windows.zip
+        run: tar.exe -a -c -f fluffychat-fork-windows.zip -C build/windows/x64/runner/Release .
 
       - uses: actions/upload-artifact@v4
         with:
