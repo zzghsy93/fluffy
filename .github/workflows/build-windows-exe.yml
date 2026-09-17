@@ -23,6 +23,11 @@ jobs:
           Expand-Archive -Path src.zip -DestinationPath . -Force
           Get-ChildItem | Select-Object Name
 
+      - name: Install NASM
+        run: |
+          choco install nasm -y --no-progress
+          Add-Content $env:GITHUB_PATH "C:\Program Files\NASM"
+
       # fork 冻结在 Flutter 3.44.0(pubspec intl 0.20.2 与之配套,勿升)
       - uses: subosito/flutter-action@v2
         with:
