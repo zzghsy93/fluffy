@@ -46,6 +46,17 @@ jobs:
       - name: Build exe
         run: flutter build windows --release --verbose
 
+      - name: Collect native assets
+        shell: pwsh
+        run: |
+          $dst = "build/windows/x64/runner/Release"
+          New-Item -ItemType Directory -Force -Path $dst | Out-Null
+          foreach ($name in @("sqlcipher.dll", "webcrypto.dll")) {
+            $hit = Get-ChildItem -Path ".dart_tool/hooks_runner", "build" -Recurse -Filter $name -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($hit) { Copy-Item $hit.FullName (Join-Path $dst $name) -Force; echo "collected $name" }
+            else { echo "MISSING $name" }
+          }
+
       - name: Zip Release
         shell: pwsh
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath fluffychat-fork-windows.zip
